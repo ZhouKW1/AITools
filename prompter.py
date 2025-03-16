@@ -7,6 +7,7 @@ def write_to_file(content, filename='output.md'):
 
 def enhance_prompt(original_prompt):
     """第一次API调用：优化用户原始提示"""
+    print("开始强化prompt...")
     system_prompt = """你是一个提示词优化专家，请将用户的原始提示转化为更清晰、具体、结构化的专业版本。
 优化后的提示应包含：
 1. 明确的背景设定

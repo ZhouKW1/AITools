@@ -1,7 +1,6 @@
 import re
 
 import requests
-import json
 from prompter import unified_interface
 
 # 定义function calling的工具描述
@@ -42,15 +41,7 @@ def should_enhance(prompt):
     2. 缺少具体背景或要求
     3. 输出格式不明确
     4. 缺少限制条件
-    如果符合以上任一标准，请以以下JSON格式返回：
-    {
-        "function": "unified_interface",
-        "parameters": {
-            "user_prompt": "用户输入的原始提示",
-            "deep_think": false
-        }
-    }
-    否则返回False。"""
+    如果符合以上任一标准，返回True，否则返回False。"""
     
     print("正在准备API请求...")
     payload = {
@@ -59,6 +50,7 @@ def should_enhance(prompt):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
+        "tools": tools,
         "temperature": 0.3,
         "max_tokens": 128,
         "top_p": 0.9
@@ -79,15 +71,14 @@ def should_enhance(prompt):
         raise Exception(f"API Error: {response.status_code} - {response.text}")
     
     print("正在解析API响应...")
-    # print("原始响应内容：", response.text)
-    decision = response.json()['choices'][0]['message']['content']
-    try:
-        function_data = json.loads(decision)
-        if function_data.get('function') == 'unified_interface':
+    print("原始响应内容：", response.text)
+    decision = response.json()['choices'][0]['message']
+    print("解析后的数据结构：", decision)
+    if decision.tool_calls:
+        tool_call = decision.tool_calls[0]
+        if tool_call.function.name == "unified_interface":
             print("检测到需要强化提示，正在调用unified_interface...")
             return unified_interface(prompt)
-    except json.JSONDecodeError:
-        pass
     print("提示无需强化，返回原始提示")
     return prompt
 
